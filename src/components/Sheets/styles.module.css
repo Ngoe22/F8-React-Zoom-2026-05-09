@@ -1,0 +1,16 @@
+.sheets {
+    display: flex;
+    position: relative;
+    user-select: none;
+}
+.sheets:focus  {
+    outline: none;
+}
+
+.sheetCorner {
+    border: 1px solid rgb(198 198 198 / 0.55);
+}
+
+.left {
+    flex-grow: 1;
+}

@@ -1,0 +1,25 @@
+.inputCell {
+    position: absolute;
+    border: 1px solid #1355ac;
+    background: white;
+    box-shadow: -1px 1px 2px 1px rgb(78 78 78 / 0.1);
+    padding: 3px;
+    overflow: auto;
+}
+.inputCell:focus {
+    outline: none;
+}
+
+.inputCell::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+}
+
+.inputCell::-webkit-scrollbar-thumb {
+    background: #999;
+    border-radius: 999px;
+}
+
+.inputCell::-webkit-scrollbar-track {
+    background: #eee;
+}

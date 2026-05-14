@@ -1,0 +1,27 @@
+.columnsContainer {
+    display: flex;
+
+}
+
+.column {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(128 128 128 / 0.2);
+}
+
+.resizeBorder {
+    position: absolute;
+    width: 3px;
+
+    border-right : 1px solid rgb(198 198 198 / 0.7);
+
+    /*inset: 0 0 0 ;*/
+    top: 0;
+    bottom: 0;
+    right: -1px;
+
+    background: transparent;
+    cursor: col-resize;
+}
