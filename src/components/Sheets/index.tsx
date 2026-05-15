@@ -1,17 +1,15 @@
-import {useContext, useRef, useState} from "react";
+import {useContext, useRef, useState , useMemo} from "react";
 import {Context} from "../../contexts/Table";
-
 import IndexColumns from "./components/IndexColumns";
 import IndexRows from "./components/IndexRows";
 import Body from "./components/Body";
 import HighlightCell from "./components/HighlightCell";
 import HighlightRange from "./components/HightlightRange";
 import InputCell from "./components/InputCell";
+import type {CoordinateType} from "../../types"
+import {getRowAndColOfNode,getNodeAndType ,getNodeType} from "../../utils/functions"
 
 import styles from "./styles.module.css"
-
-
-
 
 
 
@@ -19,10 +17,13 @@ function Sheets() {
 
     const {  columns , rows ,  fixedSize , dataTag } = useContext(Context)!;
 
+    const tableSize = useMemo( ()=>{
+        return {col : columns.length-1 , row : rows.length-1 }
+    } , [columns, rows]);
+
     //
     const [focusCell, setFocusCell] = useState<HTMLElement | null>(null);
     const [selectingCell, setSelectingCell] = useState<HTMLElement | null>(null);
-
     const [isInput, setIsInput] = useState<boolean>(false);
     const isSelecting = useRef(false);
 
@@ -32,24 +33,25 @@ function Sheets() {
     // onEvent
     const mouseDownHandle = (e : React.MouseEvent) => {
         const [ node ,type ] = getNodeAndType(e)
-
         switch (type) {
-            case  dataTag.input : {
-                return
-            }
             case  dataTag.cell : {
                 isSelecting.current = true
                 if (setSelectingCell) setSelectingCell(null)
-
                 if ( focusCell === null ) {
-
-                    console.log(`null`)
                     setFocusCell(node);
                 }
                 else if ( node !== focusCell ) {
                     setIsInput(false) ;
                     setFocusCell(node);
                 }
+                break
+            }
+            case dataTag.header :{
+                isSelecting.current = true
+                if (setSelectingCell) setSelectingCell(null)
+                setIsInput(false)
+                setFocusCell(node);
+                break
             }
         }
     };
@@ -57,7 +59,17 @@ function Sheets() {
     const mouseEnterHandle = (e : React.MouseEvent) => {
             if ( isSelecting.current ) {
                 const [ node ,type ] = getNodeAndType(e)
-                if ( type === dataTag.cell ) setSelectingCell(node)
+                switch (type) {
+                    case dataTag.cell : {
+                        setSelectingCell(node)
+                        break;
+                    }
+                    case dataTag.header : {
+
+                        setSelectingCell(node)
+                        break;
+                    }
+                }
             }
     };
 
@@ -66,7 +78,6 @@ function Sheets() {
         };
 
     const mouseDoubleClick = (e : React.MouseEvent) => {
-
         const [ ,type ] = getNodeAndType(e)
         switch (type) {
             case dataTag.cell:
@@ -75,64 +86,88 @@ function Sheets() {
         }
     }
 
-
-
-
-
-
-    const focusCellMoveByArrow = (direction:string) => {
-
-        if (!focusCell) return
-        let col = Number(focusCell.getAttribute("data-cellcolumn"));
-        let row = Number(focusCell.getAttribute("data-cellrow"));
-        const maxCol = columns.length-1 ;
-        const maxRow = rows.length-1 ;
-
-        switch (direction) {
-            case "ArrowRight": {
-                if ( col === maxCol ) return
-                col += 1
-                break;
-            }
-            case "ArrowLeft" : {
-                if ( col === 0 ) return
-                col -= 1
-                break;
-            }
-            case "ArrowUp" : {
-                if ( row === 0 ) return
-                row -= 1
-                break;
-            }
-            case "ArrowDown" : {
-                if ( row === maxRow ) return
-                row += 1
-                break;
-            }
-        }
+    const focusCellMoveByIndex = ( {col  , row } : CoordinateType  ) => {
         const toCell = document.querySelector(
             `[data-cellcolumn="${col}"][data-cellrow="${row}"]`
         ) as HTMLElement;
         setFocusCell(toCell)
     }
 
+    const focusCellMoveByEnter = () => {
+        if (!focusCell ) return ;
+        const [ row ,col ] = getRowAndColOfNode(focusCell);
 
+        if ( col === tableSize.col ) {
+            if ( row < tableSize.row ) {
+                focusCellMoveByIndex({ col:0 , row :row+1 })
+            }
+        } else {
+            focusCellMoveByArrow(`ArrowRight`)
+        }
+    }
+
+    const focusCellMoveByArrow = (direction:string) => {
+        if (!focusCell) return
+        const [ row ,col ] = getRowAndColOfNode(focusCell);
+
+        switch (direction) {
+            case "ArrowRight": {
+                if ( col === tableSize.col ) return ;
+                focusCellMoveByIndex({ col:col+1 , row })
+                break;
+            }
+            case "ArrowLeft" : {
+                if ( col === 0 ) return
+                focusCellMoveByIndex({ col:col-1 , row })
+                break;
+            }
+            case "ArrowUp" : {
+                if ( row === 0 ) return
+                focusCellMoveByIndex({ col , row:row-1 })
+                break;
+            }
+            case "ArrowDown" : {
+                if ( row === tableSize.row ) return
+                focusCellMoveByIndex({ col , row:row+1 })
+                break;
+            }
+        }
+    }
 
     const keyDownHandle = (e : React.KeyboardEvent) => {
         const key = e.key ;
 
         if ( key === "Enter" ) {
             e.preventDefault();
-
             if ( isInput ) {
-                // move right
-
+                focusCellMoveByEnter()
             } else if ( focusCell  ) {
+                if ( getNodeType(focusCell) === dataTag.header ) return
                 setIsInput(true)
             }
         } else if ( [`ArrowRight` , `ArrowLeft` , `ArrowDown` , `ArrowUp` ].includes(key) ) {
              focusCellMoveByArrow(key)
         }
+    }
+
+
+
+    const copyHandle = () => {
+        console.log("copy");
+
+        if (!focusCell || !selectingCell ) return
+
+        // start col - end col
+        // start row ( header = get header + start row = 0  ) - end row
+        // if start == header => get start row ,
+
+        // const withHeader = getNodeType(focusCell) === dataTag.header;
+
+            // const [ startRow , endRow ] = getRowAndColOfNode(focusCell);
+        //
+        // const [ rowF , colF ] = getRowAndColOfNode(focusCell);
+        // const [ rowS , colF ] = getRowAndColOfNode(focusCell);
+
     }
 
     // ====================================================
@@ -147,7 +182,7 @@ function Sheets() {
                 className={styles.sheets}
 
                 onKeyDown={keyDownHandle}
-
+                onCopy={copyHandle}
                 onDoubleClick={mouseDoubleClick}
                 onMouseDown={mouseDownHandle}
                 onMouseOver = {mouseEnterHandle}
@@ -175,8 +210,3 @@ function Sheets() {
 export default Sheets;
 
 
-const getNodeAndType =
-    (e: React.SyntheticEvent) : [HTMLElement, string | null] => {
-    const target = e.target as HTMLElement;
-    return [target, target.getAttribute("data-type")];
-};

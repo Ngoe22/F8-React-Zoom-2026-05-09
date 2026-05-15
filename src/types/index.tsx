@@ -15,4 +15,8 @@ interface updateCellProps {
     value : string,
 }
 
-export type  {ColumnTypes ,RowTypes , updateCellProps  }
+interface CoordinateType  {
+    row : number , col : number,
+}
+
+export type  {ColumnTypes ,RowTypes , updateCellProps , CoordinateType }
