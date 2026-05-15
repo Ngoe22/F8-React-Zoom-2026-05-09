@@ -59,7 +59,6 @@ function Sheets() {
                 const selectedCell = document.querySelector(
                     `[data-cellcolumn="${tableSize.col}"][data-cellrow="${index}"][data-type="${dataTag.cell}"]`
                 )
-                console.log(selectedCell)
                 if (!selectedCell) return
                 setFocusCell(node);
                 setSelectingCell(selectedCell as HTMLElement)
@@ -75,9 +74,8 @@ function Sheets() {
                 setSelectingCell(selectedCell as HTMLElement)
                 break
             }
-
             case dataTag.resizeIndexRow :{
-
+//
             }
         }
     };
@@ -91,12 +89,18 @@ function Sheets() {
                         break;
                     }
                     case dataTag.header : {
-
                         setSelectingCell(node)
                         break;
                     }
                 }
+
+
             }
+        const parent = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - parent.left;
+        const y = e.clientY - parent.top;
+
+        console.log(x, y);
     };
 
     const mouseUpHandle = () => {
@@ -172,8 +176,6 @@ function Sheets() {
                 setIsInput(true)
             }
         } else if ( [`ArrowRight` , `ArrowLeft` , `ArrowDown` , `ArrowUp` ].includes(key) ) {
-
-
             if ( isInput ) return
              focusCellMoveByArrow(key)
         }
@@ -200,7 +202,7 @@ function Sheets() {
 
         // columns , rows
 
-        let output = ""
+        let output = "" ;
 
         for ( let i = minRow ; i <= maxRow ; i ++ ) {
             const row = rows[i]
@@ -210,7 +212,6 @@ function Sheets() {
             }
             if (i < maxRow) output += "\n";
         }
-        console.log(output)
         navigator.clipboard.writeText(output);
     }
 
