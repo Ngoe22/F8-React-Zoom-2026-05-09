@@ -1,9 +1,13 @@
-function getRowAndColOfNode (node:HTMLElement ) {
+function getRowAndColOfCell (node:HTMLElement ) {
 
     const col = Number(node.getAttribute("data-cellcolumn"));
     const row = Number(node.getAttribute("data-cellrow"));
 
     return [ row , col ]
+}
+
+function getRowAndColOfHeader (node:HTMLElement) {
+    return [ 0 , Number(node.getAttribute("data-headercolumn")) ]
 }
 
 
@@ -17,4 +21,4 @@ const getNodeType = (node:HTMLElement) => {
     return node.getAttribute("data-type")
 }
 
-export { getRowAndColOfNode ,getNodeAndType ,getNodeType}
+export { getRowAndColOfCell ,getNodeAndType ,getNodeType , getRowAndColOfHeader}

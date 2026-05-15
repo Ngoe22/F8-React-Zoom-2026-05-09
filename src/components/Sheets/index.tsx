@@ -7,7 +7,7 @@ import HighlightCell from "./components/HighlightCell";
 import HighlightRange from "./components/HightlightRange";
 import InputCell from "./components/InputCell";
 import type {CoordinateType} from "../../types"
-import {getRowAndColOfNode,getNodeAndType ,getNodeType} from "../../utils/functions"
+import {getRowAndColOfCell,getNodeAndType ,getNodeType} from "../../utils/functions"
 
 import styles from "./styles.module.css"
 
@@ -53,6 +53,32 @@ function Sheets() {
                 setFocusCell(node);
                 break
             }
+            case dataTag.indexRow : {
+
+                const index = node.getAttribute(`data-indexrow`)
+                const selectedCell = document.querySelector(
+                    `[data-cellcolumn="${tableSize.col}"][data-cellrow="${index}"][data-type="${dataTag.cell}"]`
+                )
+                console.log(selectedCell)
+                if (!selectedCell) return
+                setFocusCell(node);
+                setSelectingCell(selectedCell as HTMLElement)
+                break
+            }
+            case dataTag.indexCol : {
+                const index = node.getAttribute(`data-indexcol`)
+                const selectedCell = document.querySelector(
+                    `[data-cellcolumn="${index}"][data-cellrow="${tableSize.row}"][data-type="${dataTag.cell}"]`
+                )
+                if (!selectedCell) return
+                setFocusCell(node);
+                setSelectingCell(selectedCell as HTMLElement)
+                break
+            }
+
+            case dataTag.resizeIndexRow :{
+
+            }
         }
     };
 
@@ -88,14 +114,14 @@ function Sheets() {
 
     const focusCellMoveByIndex = ( {col  , row } : CoordinateType  ) => {
         const toCell = document.querySelector(
-            `[data-cellcolumn="${col}"][data-cellrow="${row}"]`
+            `[data-cellcolumn="${col}"][data-cellrow="${row}"][data-type="${dataTag.cell}"]`
         ) as HTMLElement;
         setFocusCell(toCell)
     }
 
-    const focusCellMoveByEnter = () => {
+    const focusCellOnEnter = () => {
         if (!focusCell ) return ;
-        const [ row ,col ] = getRowAndColOfNode(focusCell);
+        const [ row ,col ] = getRowAndColOfCell(focusCell);
 
         if ( col === tableSize.col ) {
             if ( row < tableSize.row ) {
@@ -108,7 +134,7 @@ function Sheets() {
 
     const focusCellMoveByArrow = (direction:string) => {
         if (!focusCell) return
-        const [ row ,col ] = getRowAndColOfNode(focusCell);
+        const [ row ,col ] = getRowAndColOfCell(focusCell);
 
         switch (direction) {
             case "ArrowRight": {
@@ -140,34 +166,52 @@ function Sheets() {
         if ( key === "Enter" ) {
             e.preventDefault();
             if ( isInput ) {
-                focusCellMoveByEnter()
+                focusCellOnEnter()
             } else if ( focusCell  ) {
                 if ( getNodeType(focusCell) === dataTag.header ) return
                 setIsInput(true)
             }
         } else if ( [`ArrowRight` , `ArrowLeft` , `ArrowDown` , `ArrowUp` ].includes(key) ) {
+
+
+            if ( isInput ) return
              focusCellMoveByArrow(key)
         }
     }
 
-
-
     const copyHandle = () => {
         console.log("copy");
 
-        if (!focusCell || !selectingCell ) return
+        if (!focusCell ) return
 
-        // start col - end col
-        // start row ( header = get header + start row = 0  ) - end row
-        // if start == header => get start row ,
+        if (  !selectingCell ) {
+            navigator.clipboard.writeText(focusCell.innerText);
+            return
+        }
 
-        // const withHeader = getNodeType(focusCell) === dataTag.header;
-
-            // const [ startRow , endRow ] = getRowAndColOfNode(focusCell);
         //
-        // const [ rowF , colF ] = getRowAndColOfNode(focusCell);
-        // const [ rowS , colF ] = getRowAndColOfNode(focusCell);
+        const [ rowF , colF ] = getRowAndColOfCell(focusCell);
+        const [ rowS , colS ] = getRowAndColOfCell(selectingCell);
 
+        console.log( rowF , colF , rowS , colS )
+
+        const [ minRow , maxRow ] = [  Math.min( rowF , rowS ) ,  Math.max( rowF , rowS )  ] ;
+        const [ minCol , maxCol ] = [  Math.min( colF , colS ) ,  Math.max( colF , colS )  ] ;
+
+        // columns , rows
+
+        let output = ""
+
+        for ( let i = minRow ; i <= maxRow ; i ++ ) {
+            const row = rows[i]
+            for ( let j = minCol ; j <= maxCol ; j ++ ) {
+                output += `${row[ columns[j].name ]}` ;
+                if (j < maxCol) output += "\t";
+            }
+            if (i < maxRow) output += "\n";
+        }
+        console.log(output)
+        navigator.clipboard.writeText(output);
     }
 
     // ====================================================
@@ -202,6 +246,16 @@ function Sheets() {
                 <HighlightCell node =  {focusCell} />
                 <HighlightRange startNode={focusCell}  endNode={selectingCell}  />
                 <InputCell node =  { isInput ? focusCell : null } />
+
+
+                <div style={
+                    {
+                        width :"100%",
+                        height : "3px",
+                        background :"black" ,
+                        position : "absolute",
+                    }}
+                />
             </div>
 
         </>

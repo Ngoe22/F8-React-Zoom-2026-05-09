@@ -11,6 +11,7 @@ function IndexRows() {
             className={styles.row}  key={index+1}
             style={{height : row.height } }
             data-type = {dataTag.indexRow}
+            data-indexrow={index}
         >
             {index+1}
             <div

@@ -13,6 +13,7 @@ function IndexRows() {
             key={index}
             style={ {width : column.width } }
             data-type = {dataTag.indexCol}
+            data-indexcol={index}
         >
 
             {index+1}
