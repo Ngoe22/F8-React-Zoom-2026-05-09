@@ -13,11 +13,12 @@ function IndexRows() {
             key={index}
             style={ {width : column.width } }
             data-type = {dataTag.indexCol}
-            data-indexcol={index}
+            data-column = { index }
         >
-
             {index+1}
             <div
+                data-column = { index }
+
                 className={styles.resizeBorder}
                 data-type = {dataTag.resizeIndexCol}
             />

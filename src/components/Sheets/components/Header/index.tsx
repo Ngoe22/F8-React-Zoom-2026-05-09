@@ -11,9 +11,10 @@ function Header() {
             style={{width : column.width , height: fixedSize.headerHeight}  }
         >
             <div
-                data-cellrow = { 0 }
-                data-cellcolumn = { index }
+
                 className={styles.cell}
+
+                data-column = { index }
                 data-type = { dataTag.header}
             >
                 {column.name}

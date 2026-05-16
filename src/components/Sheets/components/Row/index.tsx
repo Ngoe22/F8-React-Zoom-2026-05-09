@@ -17,12 +17,13 @@ function Row({ rowIndex } : RowProps ) {
          <td
              key={index}
              style={ {height : row.height } }
+             className={styles.box}
          >
              <div
                  className={styles.cell}
                  data-type = { dataTag.cell}
-                 data-cellrow = { rowIndex }
-                 data-cellcolumn = { index }
+                 data-row = { rowIndex }
+                 data-column = { index }
              >
                  { row[column.name] }
              </div>

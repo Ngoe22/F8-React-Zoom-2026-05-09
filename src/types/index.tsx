@@ -15,8 +15,13 @@ interface updateCellProps {
     value : string,
 }
 
+interface updateRowSizeProps {
+    rowIndex :number ,
+    height : number,
+}
+
 interface CoordinateType  {
     row : number , col : number,
 }
 
-export type  {ColumnTypes ,RowTypes , updateCellProps , CoordinateType }
+export type  {ColumnTypes ,RowTypes , updateCellProps , CoordinateType , updateRowSizeProps }

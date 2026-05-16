@@ -1,6 +1,8 @@
 import styles from "./styles.module.css";
 import {useContext, useRef, memo, useEffect} from "react";
 import {Context} from "../../../../contexts/Table";
+import {getRowAndCol} from "../../../../utils/functions"
+
 
 interface Props {
     node : HTMLElement | null
@@ -31,8 +33,7 @@ function InputCell ( {node} :Props ) {
         return ()=>{
             // update data
             if ( node ) {
-                const col = node.getAttribute("data-cellcolumn");
-                const row = node.getAttribute("data-cellrow");
+                const [ row , col ] =  getRowAndCol(node)
                 if (col  && row  && tempInput.current  ) {
                         updateCell( {rowIndex :Number(row)  , colIndex : Number(col) ,value :tempInput.current } )
                         tempInput.current = null

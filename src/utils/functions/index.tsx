@@ -1,13 +1,24 @@
-function getRowAndColOfCell (node:HTMLElement ) {
-
-    const col = Number(node.getAttribute("data-cellcolumn"));
-    const row = Number(node.getAttribute("data-cellrow"));
-
-    return [ row , col ]
+function getRowAndCol (node:HTMLElement ) {
+    const col = node.getAttribute("data-column") ?? -1 ;
+    const row =  node.getAttribute("data-row") ?? -1 ;
+    return [   Number(row)  , Number(col)  ]
 }
 
-function getRowAndColOfHeader (node:HTMLElement) {
-    return [ 0 , Number(node.getAttribute("data-headercolumn")) ]
+
+interface getCellByCoodinateProps {
+    row: number | null;
+    col: number | null ;
+    type : string
+}
+
+function getCellByCoordinate ( { row = null ,col = null , type } :getCellByCoodinateProps  ) {
+
+    const colQ= col ? `[data-column="${col}"]` : ""
+    const rowQ= row ? `[data-row="${row}"]` : ""
+
+    return document.querySelector(
+        `${colQ}${rowQ}[data-type="${type}"]`
+    ) as HTMLElement;
 }
 
 
@@ -21,4 +32,4 @@ const getNodeType = (node:HTMLElement) => {
     return node.getAttribute("data-type")
 }
 
-export { getRowAndColOfCell ,getNodeAndType ,getNodeType , getRowAndColOfHeader}
+export { getRowAndCol ,getNodeAndType ,getNodeType ,  getCellByCoordinate }

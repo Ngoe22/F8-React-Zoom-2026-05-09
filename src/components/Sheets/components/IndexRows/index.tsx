@@ -11,10 +11,12 @@ function IndexRows() {
             className={styles.row}  key={index+1}
             style={{height : row.height } }
             data-type = {dataTag.indexRow}
-            data-indexrow={index}
+            data-row = { index }
         >
             {index+1}
             <div
+
+                data-row = { index }
                 className={styles.resizeBorder}
                 data-type = {dataTag.resizeIndexRow}
             />
