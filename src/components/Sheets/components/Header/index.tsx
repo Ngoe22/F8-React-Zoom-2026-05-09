@@ -6,30 +6,27 @@ function Header() {
 
     const { columns ,fixedSize , dataTag }  = useContext(Context)!;
     const UI = columns.map( (column ,index)=> {
-        return <td
+        return <div
             key={index}
-            style={{width : column.width , height: fixedSize.headerHeight}  }
+            style={{width : column.width }  }
+            className={styles.cell}
+            data-column = { index }
+            data-type = { dataTag.header}
         >
-            <div
-
-                className={styles.cell}
-
-                data-column = { index }
-                data-type = { dataTag.header}
-            >
                 {column.name}
-            </div>
-
-        </td>
+        </div>
     })
 
 
     return (
-        <thead>
-            <tr >
+
+            <div
+                style={{height: fixedSize.headerHeight}  }
+                className={styles.row}
+            >
                 {UI}
-            </tr>
-        </thead>
+            </div>
+
     )
 }
 

@@ -14,12 +14,12 @@ function Body() {
     } )
 
     return (
-        <table className={styles.table} >
+        <div className={styles.table} >
             <Header></Header>
-            <tbody>
+
                 {rowsUI}
-            </tbody>
-        </table>
+
+        </div>
     )
 }
 

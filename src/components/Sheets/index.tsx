@@ -15,7 +15,7 @@ import styles from "./styles.module.css"
 
 function Sheets() {
     // updateRowSize
-    const {  columns , rows ,  fixedSize , dataTag  } = useContext(Context)!;
+    const {  columns , rows ,  fixedSize , dataTag ,updateRowSize  } = useContext(Context)!;
 
     const tableSize = useMemo( ()=>{
         return {col : columns.length-1 , row : rows.length-1 }
@@ -121,20 +121,20 @@ function Sheets() {
         if (isResizing.current) {
             isResizing.current = false
             // const node = getCellByCoordinate( {} )
-            // document.querySelector(`[data-indexrow="0"]`)  as HTMLElement | null
+            const node = document.querySelector(`[data-row="0"]`)  as HTMLElement | null
 
-            console.log(focusCell)
+            console.log(node)
 
-            return
-            // if ( !node ) return
-            // if ( resizeRowFromTop < node.offsetTop ) {
-            //     updateRowSize({ rowIndex : 0 , height : 2  } )
-            // } else {
-            //     const newHeight = Math.floor(resizeRowFromTop - node.offsetTop)
-            //     updateRowSize({ rowIndex : 0 , height : newHeight  } )
-            // }
-            //
-            // setResizeRowFromTop(0)
+
+            if ( !node ) return
+            if ( resizeRowFromTop < node.offsetTop ) {
+                updateRowSize({ rowIndex : 0 , height : 2  } )
+            } else {
+                const newHeight = Math.floor(resizeRowFromTop - node.offsetTop)
+                updateRowSize({ rowIndex : 0 , height : newHeight  } )
+            }
+
+            setResizeRowFromTop(0)
         }
     };
 

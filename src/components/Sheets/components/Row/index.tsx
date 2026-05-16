@@ -14,26 +14,22 @@ function Row({ rowIndex } : RowProps ) {
 
     const row = rows[rowIndex]
     const UI = columns.map( (column,index)  =>
-         <td
+         <div
              key={index}
-             style={ {height : row.height } }
-             className={styles.box}
-         >
-             <div
+             style={ {height : row.height ,width : column.width } }
                  className={styles.cell}
                  data-type = { dataTag.cell}
                  data-row = { rowIndex }
                  data-column = { index }
              >
                  { row[column.name] }
-             </div>
-         </td>
+         </div>
     )
 
     return (
-        <tr  >
+        <div className={styles.row} >
             {UI}
-        </tr>
+        </div>
     )
 }
 

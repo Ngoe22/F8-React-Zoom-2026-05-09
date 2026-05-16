@@ -7,3 +7,6 @@
     background: #f2fbee;
 }
 
+.row {
+    display: flex;
+}
