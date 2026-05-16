@@ -7,15 +7,15 @@ import HighlightCell from "./components/HighlightCell";
 import HighlightRange from "./components/HightlightRange";
 import InputCell from "./components/InputCell";
 import type {CoordinateType} from "../../types"
-import {getRowAndColOfCell,getNodeAndType ,getNodeType} from "../../utils/functions"
+import {getRowAndCol,getNodeAndType ,getNodeType , getCellByCoordinate} from "../../utils/functions"
 
 import styles from "./styles.module.css"
 
 
 
 function Sheets() {
-
-    const {  columns , rows ,  fixedSize , dataTag } = useContext(Context)!;
+    // updateRowSize
+    const {  columns , rows ,  fixedSize , dataTag  } = useContext(Context)!;
 
     const tableSize = useMemo( ()=>{
         return {col : columns.length-1 , row : rows.length-1 }
@@ -25,6 +25,8 @@ function Sheets() {
     const [focusCell, setFocusCell] = useState<HTMLElement | null>(null);
     const [selectingCell, setSelectingCell] = useState<HTMLElement | null>(null);
     const [isInput, setIsInput] = useState<boolean>(false);
+
+    const isResizing = useRef<boolean>(false);
     const isSelecting = useRef(false);
 
     //
@@ -75,38 +77,66 @@ function Sheets() {
                 break
             }
             case dataTag.resizeIndexRow :{
-//
-                console.log(`here`)
+                isResizing.current = true
+
             }
         }
     };
 
     const mouseEnterHandle = (e : React.MouseEvent) => {
-            if ( isSelecting.current ) {
-                const [ node ,type ] = getNodeAndType(e)
-                switch (type) {
-                    case dataTag.cell : {
-                        setSelectingCell(node)
-                        break;
-                    }
-                    case dataTag.header : {
-                        setSelectingCell(node)
-                        break;
-                    }
+
+        const [ node ,type ] = getNodeAndType(e)
+
+        if ( isSelecting.current ) {
+            switch (type) {
+                case dataTag.cell : {
+                    setSelectingCell(node)
+                    break;
                 }
-
-
+                case dataTag.header : {
+                    setSelectingCell(node)
+                    break;
+                }
             }
-        const parent = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - parent.left;
-        const y = e.clientY - parent.top;
+        }
 
-        console.log(x, y);
+        if ( isResizing.current ) {
+            switch (type) {
+                case dataTag.indexRow : {
+                    // const parent = e.currentTarget.getBoundingClientRect();
+                    // const x = e.clientX - parent.left;
+                    // const y = e.clientY - parent.top;
+                    //
+                    // console.log(x, y);
+                }
+            }
+        }
+
     };
 
     const mouseUpHandle = () => {
-            if ( isSelecting.current ) isSelecting.current = false
-        };
+        if ( isSelecting.current ) isSelecting.current = false
+
+
+        if (isResizing.current) {
+            isResizing.current = false
+            // const node = getCellByCoordinate( {} )
+            // document.querySelector(`[data-indexrow="0"]`)  as HTMLElement | null
+
+            console.log(focusCell)
+
+            return
+            // if ( !node ) return
+            // if ( resizeRowFromTop < node.offsetTop ) {
+            //     updateRowSize({ rowIndex : 0 , height : 2  } )
+            // } else {
+            //     const newHeight = Math.floor(resizeRowFromTop - node.offsetTop)
+            //     updateRowSize({ rowIndex : 0 , height : newHeight  } )
+            // }
+            //
+            // setResizeRowFromTop(0)
+        }
+    };
 
     const mouseDoubleClick = (e : React.MouseEvent) => {
         const [ ,type ] = getNodeAndType(e)
@@ -118,15 +148,13 @@ function Sheets() {
     }
 
     const focusCellMoveByIndex = ( {col  , row } : CoordinateType  ) => {
-        const toCell = document.querySelector(
-            `[data-cellcolumn="${col}"][data-cellrow="${row}"][data-type="${dataTag.cell}"]`
-        ) as HTMLElement;
+        const toCell = getCellByCoordinate( { col , row , type : dataTag.cell }  );
         setFocusCell(toCell)
     }
 
     const focusCellOnEnter = () => {
         if (!focusCell ) return ;
-        const [ row ,col ] = getRowAndColOfCell(focusCell);
+        const [ row ,col ] = getRowAndCol(focusCell);
 
         if ( col === tableSize.col ) {
             if ( row < tableSize.row ) {
@@ -139,7 +167,7 @@ function Sheets() {
 
     const focusCellMoveByArrow = (direction:string) => {
         if (!focusCell) return
-        const [ row ,col ] = getRowAndColOfCell(focusCell);
+        const [ row ,col ] = getRowAndCol(focusCell);
 
         switch (direction) {
             case "ArrowRight": {
@@ -193,8 +221,8 @@ function Sheets() {
         }
 
         //
-        const [ rowF , colF ] = getRowAndColOfCell(focusCell);
-        const [ rowS , colS ] = getRowAndColOfCell(selectingCell);
+        const [ rowF , colF ] = getRowAndCol(focusCell);
+        const [ rowS , colS ] = getRowAndCol(selectingCell);
 
         console.log( rowF , colF , rowS , colS )
 
@@ -218,11 +246,26 @@ function Sheets() {
 
     // ====================================================
 
+    const [ resizeRowFromTop , setResizeRowFromTop ] = useState( 0 ) ;
+
+
+    const  mouseMoveHandle = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!isResizing.current) return
+
+        const parent = e.currentTarget.getBoundingClientRect();
+
+        // const x = e.clientX - parent.left;
+        const y = e.clientY - parent.top;
+        setResizeRowFromTop(y)
+    }
+
     return (
         <>
             <div>Meow</div>
             <hr/>
             <div
+                style={{cursor: "grabbing"}}
+
                 tabIndex={0}
                 ref={sheetRef}
                 className={styles.sheets}
@@ -233,6 +276,8 @@ function Sheets() {
                 onMouseDown={mouseDownHandle}
                 onMouseOver = {mouseEnterHandle}
                 onMouseUp={mouseUpHandle}
+
+                onMouseMove = {mouseMoveHandle}
             >
                 <div className={styles.right} >
                     <div
@@ -250,14 +295,21 @@ function Sheets() {
                 <InputCell node =  { isInput ? focusCell : null } />
 
 
-                <div style={
-                    {
-                        width :"100%",
-                        height : "3px",
-                        background :"black" ,
-                        position : "absolute",
-                    }}
-                />
+                { resizeRowFromTop  ?
+                    <div style={
+                        {
+                            width: "100%" ,
+                            height:"2px",
+                            left : "0" ,
+                            top: `${resizeRowFromTop}px` ,
+                            background :"black" ,
+                            position : "absolute",
+
+                        }}
+                    /> : null
+                }
+
+
             </div>
 
         </>
