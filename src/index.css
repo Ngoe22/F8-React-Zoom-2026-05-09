@@ -1,0 +1,14 @@
+
+
+:root {
+    --tableBorder : 1px solid rgb(181 181 181 / 0.5);
+    --highlightBorder : 1px solid #217efa;
+    --hightlightBg :  rgb(19 85 172 / 0.1);
+
+    --headerCellBg : #f2fbee ;
+
+    --sideIndexBg : rgb(230 230 230 / 0.2);
+    --resizeSize : 4px ;
+    --resizeBg : transparent ;
+    --onResizeBg : red ;
+}

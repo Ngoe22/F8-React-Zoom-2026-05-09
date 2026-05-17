@@ -1,6 +1,6 @@
 import {createContext, type ReactNode,} from "react";
 
-import type {ColumnTypes, RowTypes, updateCellProps, updateRowSizeProps} from "../../types";
+import type {ColumnTypes, RowTypes, updateCellProps, updateSizeProps} from "../../types";
 
 
 
@@ -16,7 +16,8 @@ type ContextType = {
         [key: string]: string ;
     }
     updateCell: (props: updateCellProps) => void;
-    updateRowSize : ( props :updateRowSizeProps ) => void;
+    updateRowSize : ( props :updateSizeProps ) => void;
+    updateColSize : ( props :updateSizeProps ) => void;
 };
 
 const Context =

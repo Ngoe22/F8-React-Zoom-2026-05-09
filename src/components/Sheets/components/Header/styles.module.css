@@ -4,8 +4,8 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    background: #f2fbee;
-    border: 1px solid ghostwhite;
+    background: var(--headerCellBg);
+    border: var(--tableBorder);
 }
 
 .row {

@@ -1,6 +1,6 @@
 import {  Provider } from "./contexts/Table";
 import './App.css'
-import type {ColumnTypes ,RowTypes ,updateCellProps , updateRowSizeProps } from "./types";
+import type {ColumnTypes ,RowTypes ,updateCellProps , updateSizeProps } from "./types";
 import Sheets from "./components/Sheets"
 import {useState} from "react";
 
@@ -21,8 +21,9 @@ const   dataTag = {
   resizeIndexCol : "resizeIndexCol" ,
   resizeIndexRow : "resizeIndexRow" ,
   input : "input",
-
   resizeIndexPad : "resizeIndexPad" ,
+
+  sheet : "sheet",
 }
 
 const Columns :ColumnTypes[] = [
@@ -52,11 +53,15 @@ function App() {
     setRows(newRows);
   }
 
-  const updateRowSize = ( {rowIndex , height } : updateRowSizeProps )=> {
+  const updateRowSize = ( {index , newSize } : updateSizeProps )=> {
     const newRows = [...Rows];
-    newRows[ rowIndex ].height = `${height}px`;
+    newRows[ index ].height = `${newSize}px`;
   }
 
+  const updateColSize = ( {index , newSize } : updateSizeProps )=> {
+    const newColumns = [...Columns];
+    newColumns[ index ].width = `${newSize}px`;
+  }
 
 
   // =====================
@@ -67,7 +72,8 @@ function App() {
     fixedSize : fixedSize ,
     dataTag : dataTag ,
     updateCell : updateCell ,
-    updateRowSize: updateRowSize
+    updateRowSize: updateRowSize ,
+    updateColSize:updateColSize ,
   }
 
   return (

@@ -5,14 +5,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgb(128 128 128 / 0.2);
+    background: var(--sideIndexBg);
     overflow: hidden;
-    border: 1px solid ghostwhite;
+    border: var(--tableBorder);
 }
 
 .resizeBorder , .resizeBorderHeader {
     position: absolute;
-    height: 4px;
+    height: var(--resizeSize);
 
     /*border-bottom: 1px solid rgb(198 198 198 / 0.55);*/
 
@@ -21,7 +21,7 @@
     bottom: 0;
     right: 0;
 
-    background: red;
+    background: var(--resizeBg);
 
 }
 .resizeBorder {

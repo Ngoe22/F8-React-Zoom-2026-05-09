@@ -8,21 +8,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgb(128 128 128 / 0.2);
-    border: 1px solid ghostwhite;
+    background: var(--sideIndexBg);
+    border: var(--tableBorder);
 }
 
 .resizeBorder {
     position: absolute;
-    width: 4px;
-
-
+    width: var(--resizeSize);
 
     /*inset: 0 0 0 ;*/
     top: 0;
     bottom: 0;
     right: 0;
 
-    background: red;
+    background: var(--resizeBg);
     cursor: col-resize;
+    z-index: 3;
+}
+
+.resizeBorder.onResize {
+    background: var(--onResizeBg);
+
 }

@@ -1,6 +1,6 @@
 .highlightRange {
     position: absolute;
-    border: 1px solid #1355ac;
-    background-color: rgb(19 85 172 / 0.1);
+    border : var(--highlightBorder);
+    background-color: var(--hightlightBg);
     pointer-events: none;
 }

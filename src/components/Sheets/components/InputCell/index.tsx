@@ -1,7 +1,7 @@
 import styles from "./styles.module.css";
 import {useContext, useRef, memo, useEffect} from "react";
 import {Context} from "../../../../contexts/Table";
-import {getRowAndCol} from "../../../../utils/functions"
+import {getNodeInfo} from "../../../../utils/functions"
 
 
 interface Props {
@@ -33,9 +33,9 @@ function InputCell ( {node} :Props ) {
         return ()=>{
             // update data
             if ( node ) {
-                const [ row , col ] =  getRowAndCol(node)
+                const { row , col } =  getNodeInfo(node)
                 if (col  && row  && tempInput.current  ) {
-                        updateCell( {rowIndex :Number(row)  , colIndex : Number(col) ,value :tempInput.current } )
+                        updateCell( {rowIndex :row  , colIndex : col ,value :tempInput.current } )
                         tempInput.current = null
                 }
             }

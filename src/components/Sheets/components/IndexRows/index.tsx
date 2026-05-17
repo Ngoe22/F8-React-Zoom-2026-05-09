@@ -6,6 +6,8 @@ function IndexRows() {
 
     const { rows ,fixedSize ,dataTag }  = useContext(Context)!;
 
+
+
     const UI = rows.map( (row ,index )=>
          <li
             className={styles.row}  key={index+1}

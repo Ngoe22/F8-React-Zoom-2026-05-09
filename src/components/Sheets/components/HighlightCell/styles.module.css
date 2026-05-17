@@ -1,5 +1,5 @@
 .highlightCell {
     position: absolute;
-    border: 1px solid #1355ac;
+    border: var(--highlightBorder);
     pointer-events: none;
 }
