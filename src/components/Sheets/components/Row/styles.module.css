@@ -6,6 +6,7 @@
 
     position: relative;
     border: 1px solid ghostwhite;
+    overflow: hidden;
 }
 
 .box {

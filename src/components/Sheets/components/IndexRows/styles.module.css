@@ -6,20 +6,22 @@
     align-items: center;
     justify-content: center;
     background: rgb(128 128 128 / 0.2);
+    overflow: hidden;
+    border: 1px solid ghostwhite;
 }
 
 .resizeBorder , .resizeBorderHeader {
     position: absolute;
-    height: 3px;
+    height: 4px;
 
-    border-bottom: 1px solid rgb(198 198 198 / 0.55);
+    /*border-bottom: 1px solid rgb(198 198 198 / 0.55);*/
 
     /*inset: 0 0 0 ;*/
     left: 0;
-    bottom: -1px;
+    bottom: 0;
     right: 0;
 
-    background: transparent;
+    background: red;
 
 }
 .resizeBorder {

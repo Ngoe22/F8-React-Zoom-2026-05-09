@@ -5,13 +5,13 @@ function getRowAndCol (node:HTMLElement ) {
 }
 
 
-interface getCellByCoodinateProps {
+interface getCellByCoordinateProps {
     row: number | null;
     col: number | null ;
     type : string
 }
 
-function getCellByCoordinate ( { row = null ,col = null , type } :getCellByCoodinateProps  ) {
+function getCellByCoordinate ( { row = null ,col = null , type } :getCellByCoordinateProps  ) {
 
     const colQ= col ? `[data-column="${col}"]` : ""
     const rowQ= row ? `[data-row="${row}"]` : ""

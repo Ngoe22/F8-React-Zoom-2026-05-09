@@ -15,7 +15,6 @@ function IndexRows() {
         >
             {index+1}
             <div
-
                 data-row = { index }
                 className={styles.resizeBorder}
                 data-type = {dataTag.resizeIndexRow}

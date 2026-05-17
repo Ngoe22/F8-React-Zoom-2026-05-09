@@ -28,6 +28,7 @@ function Sheets() {
 
     const isResizing = useRef<boolean>(false);
     const isSelecting = useRef(false);
+    const resizeCell = useRef<HTMLElement | null>(null);
 
     //
     const sheetRef = useRef<HTMLDivElement | null>(null);
@@ -67,7 +68,10 @@ function Sheets() {
                 break
             }
             case dataTag.indexCol : {
-                const index = node.getAttribute(`data-indexcol`)
+
+
+
+                const index = node.getAttribute(`data-col`)
                 const selectedCell = document.querySelector(
                     `[data-cellcolumn="${index}"][data-cellrow="${tableSize.row}"][data-type="${dataTag.cell}"]`
                 )
@@ -78,6 +82,7 @@ function Sheets() {
             }
             case dataTag.resizeIndexRow :{
                 isResizing.current = true
+                resizeCell.current = node ;
 
             }
         }
@@ -103,11 +108,7 @@ function Sheets() {
         if ( isResizing.current ) {
             switch (type) {
                 case dataTag.indexRow : {
-                    // const parent = e.currentTarget.getBoundingClientRect();
-                    // const x = e.clientX - parent.left;
-                    // const y = e.clientY - parent.top;
-                    //
-                    // console.log(x, y);
+                //
                 }
             }
         }
@@ -118,23 +119,32 @@ function Sheets() {
         if ( isSelecting.current ) isSelecting.current = false
 
 
-        if (isResizing.current) {
+        if (isResizing.current && resizeCell.current ) {
             isResizing.current = false
             // const node = getCellByCoordinate( {} )
-            const node = document.querySelector(`[data-row="0"]`)  as HTMLElement | null
-
-            console.log(node)
 
 
-            if ( !node ) return
-            if ( resizeRowFromTop < node.offsetTop ) {
-                updateRowSize({ rowIndex : 0 , height : 2  } )
+            // const type = getNodeType(resizeCell.current as HTMLElement )
+
+            console.log(resizeCell.current)
+
+            const node = resizeCell.current.parentElement
+
+            if ( !node ) return;
+
+            const [ index ,  ] = getRowAndCol(node)
+            const dis = resizeRowFromTop - node.offsetTop ;
+
+
+            if ( dis < 10 ) {
+                updateRowSize({ rowIndex : index , height : 10  } )
             } else {
-                const newHeight = Math.floor(resizeRowFromTop - node.offsetTop)
-                updateRowSize({ rowIndex : 0 , height : newHeight  } )
+                const newHeight = Math.floor(dis)
+                updateRowSize({ rowIndex : index , height : newHeight  } )
             }
 
             setResizeRowFromTop(0)
+            resizeCell.current = null
         }
     };
 
@@ -219,20 +229,14 @@ function Sheets() {
             navigator.clipboard.writeText(focusCell.innerText);
             return
         }
-
         //
         const [ rowF , colF ] = getRowAndCol(focusCell);
         const [ rowS , colS ] = getRowAndCol(selectingCell);
 
-        console.log( rowF , colF , rowS , colS )
-
         const [ minRow , maxRow ] = [  Math.min( rowF , rowS ) ,  Math.max( rowF , rowS )  ] ;
         const [ minCol , maxCol ] = [  Math.min( colF , colS ) ,  Math.max( colF , colS )  ] ;
 
-        // columns , rows
-
         let output = "" ;
-
         for ( let i = minRow ; i <= maxRow ; i ++ ) {
             const row = rows[i]
             for ( let j = minCol ; j <= maxCol ; j ++ ) {
@@ -247,7 +251,7 @@ function Sheets() {
     // ====================================================
 
     const [ resizeRowFromTop , setResizeRowFromTop ] = useState( 0 ) ;
-
+    // const [ resizeRowFromLeft , setResizeRowFromLeft ] = useState( 0 ) ;
 
     const  mouseMoveHandle = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isResizing.current) return
@@ -264,7 +268,7 @@ function Sheets() {
             <div>Meow</div>
             <hr/>
             <div
-                style={{cursor: "grabbing"}}
+                // style={{cursor: "grabbing"}}
 
                 tabIndex={0}
                 ref={sheetRef}
@@ -299,7 +303,7 @@ function Sheets() {
                     <div style={
                         {
                             width: "100%" ,
-                            height:"2px",
+                            height:"4px",
                             left : "0" ,
                             top: `${resizeRowFromTop}px` ,
                             background :"black" ,

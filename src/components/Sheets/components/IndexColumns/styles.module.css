@@ -9,19 +9,20 @@
     align-items: center;
     justify-content: center;
     background: rgb(128 128 128 / 0.2);
+    border: 1px solid ghostwhite;
 }
 
 .resizeBorder {
     position: absolute;
-    width: 3px;
+    width: 4px;
 
-    border-right : 1px solid rgb(198 198 198 / 0.7);
+
 
     /*inset: 0 0 0 ;*/
     top: 0;
     bottom: 0;
-    right: -1px;
+    right: 0;
 
-    background: transparent;
+    background: red;
     cursor: col-resize;
 }
