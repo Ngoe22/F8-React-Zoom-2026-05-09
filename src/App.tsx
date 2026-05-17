@@ -26,16 +26,19 @@ const   dataTag = {
   sheet : "sheet",
 }
 
-const Columns :ColumnTypes[] = [
-  { name: "id" , editable : true , width : "150px" } ,
-  { name: "name" , editable : true , width : "150px" },
-  { name: "order" , editable : true , width : "150px" },
-  { name: "note" , editable : true , width : "150px" }
-]
 
 //
 
 function App() {
+
+
+  const  [ Columns , setColumns ]  = useState<ColumnTypes[]> ( [
+    { name: "id" , editable : true , width : "150px" } ,
+    { name: "name" , editable : true , width : "150px" },
+    { name: "order" , editable : true , width : "150px" },
+    { name: "note" , editable : true , width : "150px" }
+  ] )
+
 
   const [ Rows , setRows ] = useState<RowTypes[]>( [
     { id : `1` , name : "Magne1" , order : "asc1" , note : "1-1" , height : "30px" },
@@ -56,11 +59,15 @@ function App() {
   const updateRowSize = ( {index , newSize } : updateSizeProps )=> {
     const newRows = [...Rows];
     newRows[ index ].height = `${newSize}px`;
+
+    setRows(newRows)
   }
 
   const updateColSize = ( {index , newSize } : updateSizeProps )=> {
+
     const newColumns = [...Columns];
     newColumns[ index ].width = `${newSize}px`;
+    setColumns(newColumns)
   }
 
 

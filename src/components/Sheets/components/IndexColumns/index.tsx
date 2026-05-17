@@ -1,7 +1,21 @@
-import {useContext} from "react";
+import {useContext , useRef} from "react";
 import { Context } from "../../../../contexts/Table";
 
 import styles from "./styles.module.css"
+
+
+function pxToNumber(value: string): number {
+
+    if (!value.endsWith("px")) {
+        return 0;
+    }
+
+    return Number(
+        value.replace("px", "")
+    );
+}
+
+
 
 function IndexRows() {
 
@@ -9,19 +23,39 @@ function IndexRows() {
     const { columns,fixedSize , dataTag , updateColSize }  = useContext(Context)!;
 
 
-    const mouseDownHandler = (e ) => {
-        console.log(e.target) ;
-        e.target.classList.add(styles.onResize);
-        const sheetHeight =
-            e.target.closest(`[data-type="${dataTag.sheet}"]`).offsetHeight
-        e.target.style.height = `${sheetHeight}px`;
-    }
-
-    const mouseUpHandler = () => {
 
 
-        e.target.style.height = "";
-    }
+
+    const mouseDownHandler
+        = (e: React.MouseEvent<HTMLDivElement> , index :number ) => {
+        const node = e.target as HTMLElement;
+        node.classList.add(styles.onResize);
+        const startX = e.clientX;
+        const newSize =  { num : 0 }
+
+        const mouseMoveHandler = (e: MouseEvent) => {
+            const gap = e.clientX - startX
+            node.style.right =
+                `${ gap *-1 }px`;
+            newSize.num = gap
+        };
+        const mouseUpHandler = () => {
+            const currentWidth =  pxToNumber(columns[index].width)
+            const newWidth = currentWidth + newSize.num  < 20 ? 20 :  currentWidth + newSize.num
+
+            node.classList.remove(styles.onResize);
+            node.style.right = `` ;
+
+
+            updateColSize( {index , newSize : newWidth } )
+
+            //
+            window.removeEventListener("mousemove", mouseMoveHandler);
+            window.removeEventListener("mouseup", mouseUpHandler);
+        };
+        window.addEventListener("mousemove", mouseMoveHandler);
+        window.addEventListener("mouseup", mouseUpHandler);
+    };
 
 
 
@@ -36,9 +70,7 @@ function IndexRows() {
             {index+1}
             <div
 
-                onMouseDown={mouseDownHandler}
-                onMouseUp={mouseUpHandler}
-
+                onMouseDown={(e)=> { mouseDownHandler(e ,index) }}
                 data-column = { index }
                 className={styles.resizeBorder}
                 data-type = {dataTag.resizeIndexCol}
