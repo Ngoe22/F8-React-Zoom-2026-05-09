@@ -48,12 +48,21 @@ function reducer(state, param ) {
 }
 
 
+
+interface NodeProps {
+    ref : HTMLDivElement ,
+    row : number ,
+    col : number ,
+    type : string ,
+}
+
+
 function Sheets() {
 
     const {  columns , rows ,  fixedSize , dataTag   } = useContext(Context)!;
     const sheetRef = useRef<HTMLDivElement | null>(null);
     const [state, dispatch] = useReducer(reducer, {
-        focusCell: null ,
+        focusCell:  null ,
         lastSelectedCell : null ,
         isSelecting : false ,
         isResizing : false ,
@@ -72,7 +81,6 @@ function Sheets() {
                     moseEnterAction : `updateSelectingNode` ,
                     shareWith : [  dataTag.cell ] ,
                }
-
         }
     )
 
@@ -88,7 +96,7 @@ function Sheets() {
                     // type : `${moseDownInfo.type}` , action : `focusAndActiveSelecting` , nodeRef : moseDownInfo.ref ,
                     type : `${moseDownInfo.type}` ,
                     action : reducerInfo.current[moseDownInfo.type].moseDownAction ,
-                    nodeRef : moseDownInfo.ref ,
+                    nodeRef : moseDownInfo ,
                     callback : ()=> {
 
                         if (!sheetRef.current) return
