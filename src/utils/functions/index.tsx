@@ -35,10 +35,28 @@
 function getNodeInfo ( node:HTMLElement ) {
     const col = node.getAttribute("data-column") ?? -1 ;
     const row =  node.getAttribute("data-row") ?? -1 ;
-    const type = node.getAttribute("data-type") ;
+    const type = node.getAttribute("data-type") ?? "" ;
     return { ref : node , col : Number(col), row : Number(row), type  };
 }
 
+function pxToNumber(value: string): number {
+    if (!value.endsWith("px")) {
+        return 0;
+    }
+    return Number(
+        value.replace("px", "")
+    );
+}
 
+function isOneOfTypes(array:string[], nodes : HTMLElement[]) {
 
-export { getNodeInfo }
+    const nodeTypes =  nodes.map( (node)=> {
+        return node.getAttribute("data-type");
+    } )
+    for ( const nodeType of nodeTypes  ) {
+        if  ( !nodeType || !array.includes(nodeType) ) return false
+    }
+    return true
+
+}
+export { getNodeInfo , pxToNumber , isOneOfTypes}

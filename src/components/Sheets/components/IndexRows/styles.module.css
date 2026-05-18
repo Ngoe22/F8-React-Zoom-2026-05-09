@@ -6,24 +6,22 @@
     align-items: center;
     justify-content: center;
     background: var(--sideIndexBg);
-    overflow: hidden;
     border: var(--tableBorder);
 }
 
 .resizeBorder , .resizeBorderHeader {
     position: absolute;
     height: var(--resizeSize);
-
-    /*border-bottom: 1px solid rgb(198 198 198 / 0.55);*/
-
-    /*inset: 0 0 0 ;*/
     left: 0;
     bottom: 0;
     right: 0;
-
     background: var(--resizeBg);
 
 }
 .resizeBorder {
     cursor: row-resize;
+}
+.resizeBorder.onResize {
+    background: var(--onResizeBg);
+
 }

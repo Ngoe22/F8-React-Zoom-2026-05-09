@@ -1,19 +1,9 @@
-import {useContext , useRef} from "react";
+import {useContext } from "react";
 import { Context } from "../../../../contexts/Table";
-
 import styles from "./styles.module.css"
+import { pxToNumber } from "../../../../utils/functions"
 
 
-function pxToNumber(value: string): number {
-
-    if (!value.endsWith("px")) {
-        return 0;
-    }
-
-    return Number(
-        value.replace("px", "")
-    );
-}
 
 
 
@@ -22,33 +12,34 @@ function IndexRows() {
 
     const { columns,fixedSize , dataTag , updateColSize }  = useContext(Context)!;
 
-
-
-
-
     const mouseDownHandler
         = (e: React.MouseEvent<HTMLDivElement> , index :number ) => {
+
         const node = e.target as HTMLElement;
+        const parent
+            = node.closest(`[data-type=${dataTag.sheet}]`) as HTMLElement | null;
+        if (!parent) return
+        const parentHeight = parent.offsetHeight
+
         node.classList.add(styles.onResize);
+        node.style.height = parentHeight + "px";
         const startX = e.clientX;
         const newSize =  { num : 0 }
 
         const mouseMoveHandler = (e: MouseEvent) => {
             const gap = e.clientX - startX
-            node.style.right =
-                `${ gap *-1 }px`;
+            node.style.right = gap*-1 + "px";
             newSize.num = gap
         };
         const mouseUpHandler = () => {
             const currentWidth =  pxToNumber(columns[index].width)
             const newWidth = currentWidth + newSize.num  < 20 ? 20 :  currentWidth + newSize.num
-
             node.classList.remove(styles.onResize);
-            node.style.right = `` ;
-
-
+            Object.assign(node.style, {
+                right: ``,
+                height: ``,
+            });
             updateColSize( {index , newSize : newWidth } )
-
             //
             window.removeEventListener("mousemove", mouseMoveHandler);
             window.removeEventListener("mouseup", mouseUpHandler);
@@ -71,7 +62,6 @@ function IndexRows() {
             <div
 
                 onMouseDown={(e)=> { mouseDownHandler(e ,index) }}
-                data-column = { index }
                 className={styles.resizeBorder}
                 data-type = {dataTag.resizeIndexCol}
             />

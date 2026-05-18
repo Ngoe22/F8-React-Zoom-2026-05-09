@@ -2,10 +2,6 @@ import {createContext, type ReactNode,} from "react";
 
 import type {ColumnTypes, RowTypes, updateCellProps, updateSizeProps} from "../../types";
 
-
-
-
-
 type ContextType = {
     columns: ColumnTypes[];
     rows: RowTypes[];
