@@ -36,27 +36,39 @@ function getNodeInfo ( node:HTMLElement ) {
     const col = node.getAttribute("data-column") ?? -1 ;
     const row =  node.getAttribute("data-row") ?? -1 ;
     const type = node.getAttribute("data-type") ?? "" ;
-    return { ref : node , col : Number(col), row : Number(row), type  };
+    return {   col : Number(col), row : Number(row), type  };
 }
 
 function pxToNumber(value: string): number {
-    if (!value.endsWith("px")) {
-        return 0;
-    }
-    return Number(
-        value.replace("px", "")
-    );
+    if (!value.endsWith("px")) return 0;
+    return Number(value.replace("px", ""));
 }
 
-function isOneOfTypes(array:string[], nodes : HTMLElement[]) {
-
-    const nodeTypes =  nodes.map( (node)=> {
-        return node.getAttribute("data-type");
-    } )
+function isOneOfTypes(array:string[], nodeTypes : string[]) {
     for ( const nodeType of nodeTypes  ) {
         if  ( !nodeType || !array.includes(nodeType) ) return false
     }
     return true
-
 }
-export { getNodeInfo , pxToNumber , isOneOfTypes}
+
+
+interface  queryCellNodeProps {
+    row : number | null;
+    col : number | null;
+    type  : string | null;
+}
+
+function queryCellNode ( {row , col , type ,  } : queryCellNodeProps  ) {
+
+    const rowQ = ( row === null || row < 0 )  ? "" : `[data-row="${row}"]`
+    const colQ = ( col === null || col < 0 )  ? "" : `[data-column="${col}"]`
+    const typeQ = row === null ? "" : `[data-type="${type}"]`
+
+    if (!(rowQ+colQ+typeQ) ) return null
+    return document.querySelector(rowQ+colQ+typeQ) as HTMLElement
+}
+
+
+
+
+export { getNodeInfo , pxToNumber , isOneOfTypes , queryCellNode}

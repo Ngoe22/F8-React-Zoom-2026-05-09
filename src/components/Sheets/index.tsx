@@ -1,4 +1,4 @@
-import {useContext, useRef, useMemo, useReducer} from "react";
+import {useContext, useRef, useReducer, useMemo} from "react";
 import {Context} from "../../contexts/Table";
 import IndexColumns from "./components/IndexColumns";
 import IndexRows from "./components/IndexRows";
@@ -6,54 +6,83 @@ import Body from "./components/Body";
 import HighlightCell from "./components/HighlightCell";
 import HighlightRange from "./components/HightlightRange";
 import InputCell from "./components/InputCell";
-import {getNodeInfo, isOneOfTypes} from "../../utils/functions"
+import {getNodeInfo, isOneOfTypes } from "../../utils/functions"
 
+import type {CellNodeType } from "../../types"
 import styles from "./styles.module.css"
 
 
-function reducer(state, param ) {
+
+
+
+
+interface StateProps {
+    focusCell:  CellNodeType | null ,
+    lastSelectedCell :  CellNodeType | null ,
+    isSelecting : boolean ,
+    isResizing : boolean ,
+    isInput : boolean   ,
+}
+interface DispatchProps {
+    type : string ;
+    action : string ;
+    cellNode ?: CellNodeType  ;
+    sheetEl ?: HTMLDivElement ;
+    callback ?: ()=> void
+}
+
+
+function reducer(state : StateProps, param : DispatchProps ) {
 
     switch (param.type) {
-
         case "cell":
         case "header": {
             switch (param.action) {
                 case "focusAndActiveSelecting" : {
-                    param.callback() // addEventListener
+                    if (param.callback ) param.callback() // addEventListener
                     return {
                         ...state ,
-                        focusCell : param.nodeRef ,
+                        focusCell : param.cellNode! ,
                         isSelecting : true ,
                         lastSelectedCell : null,
                         isInput : false
                     }
                 }
                 case "updateSelectingNode" : {
-                    return {  ...state , lastSelectedCell : param.nodeRef }
+                    return {  ...state , lastSelectedCell : param.cellNode! }
                 }
                 case "executeSelecting" : {
-                    param.callback() // removeEventListener
+                    if (param.callback )param.callback() // removeEventListener
                     return {  ...state , isSelecting : false  }
                 }
                 case "doubleClick" : {
                     return {  ...state , isInput : true  }
                 }
+                case "updateFocusIndex" : {
+                    return {  ...state , focusCell : param.cellNode! ,  }
+                }
+                default:
+                    return state;
             }
-            break;
+        }
+        case "indexCol": {
+            switch (param.action) {
+                case "activeSelecting" : {
+                    return state;
+                }
+                case "updateSelectingNode" : {
+                    return state;
+                }
+                case "executeSelecting" : {
+                    return state;
+                }
+                default:
+                    return state;
+            }
         }
         default:
             return state;
     }
-
-}
-
-
-
-interface NodeProps {
-    ref : HTMLDivElement ,
-    row : number ,
-    col : number ,
-    type : string ,
 }
 
 
@@ -61,7 +90,15 @@ function Sheets() {
 
     const {  columns , rows ,  fixedSize , dataTag   } = useContext(Context)!;
     const sheetRef = useRef<HTMLDivElement | null>(null);
-    const [state, dispatch] = useReducer(reducer, {
+    const tableSize = useMemo(
+        () => ({
+            col: columns.length -1,
+            row: rows.length -1
+        }),
+        [columns, rows]
+    );
+
+    const [state, dispatch] = useReducer( reducer, {
         focusCell:  null ,
         lastSelectedCell : null ,
         isSelecting : false ,
@@ -74,46 +111,50 @@ function Sheets() {
                [dataTag.cell] : {
                    moseDownAction : `focusAndActiveSelecting` ,
                    moseEnterAction : `updateSelectingNode` ,
-                   shareWith : [  dataTag.header ] ,
+                   shareWith : [ dataTag.cell , dataTag.header ] ,
                } ,
                [dataTag.header] : {
                     moseDownAction : `focusAndActiveSelecting` ,
                     moseEnterAction : `updateSelectingNode` ,
-                    shareWith : [  dataTag.cell ] ,
-               }
+                    shareWith : [  dataTag.cell , dataTag.header ] ,
+               } ,
+                [dataTag.indexCol] : {
+                moseDownAction : `activeSelecting` ,
+                moseEnterAction : `updateSelectingNode` ,
+                shareWith : [  dataTag.indexCol ] ,
+                }
         }
     )
 
-
-
     const mouseDownHandle = (e : React.MouseEvent) => {
-        const moseDownInfo = getNodeInfo(e.target as HTMLDivElement) ;
+        const moseDownInfo = getNodeInfo(e.target as HTMLElement) ;
 
-        if ( ![ dataTag.cell , dataTag.header , dataTag.resizeIndexCol ,  dataTag.resizeIndexRow ].includes(moseDownInfo.type) ) return
+        if ( ![ dataTag.cell , dataTag.header , dataTag.indexCol ,  dataTag.indexRow ].includes(moseDownInfo.type) ) return
 
-            dispatch(
+        dispatch(
                 {
                     // type : `${moseDownInfo.type}` , action : `focusAndActiveSelecting` , nodeRef : moseDownInfo.ref ,
                     type : `${moseDownInfo.type}` ,
                     action : reducerInfo.current[moseDownInfo.type].moseDownAction ,
-                    nodeRef : moseDownInfo ,
+                    cellNode : moseDownInfo ,
                     callback : ()=> {
 
                         if (!sheetRef.current) return
+
+
                         const  mouseEnterHandle  =  (e : MouseEvent) => {
 
-                            const mouseEnterInfo = getNodeInfo(e.target as HTMLDivElement) ;
-                            if (!mouseEnterInfo  ) return
+                            const mouseEnterInfo = getNodeInfo(e.target as HTMLElement) ;
 
-                            const acceptType
-                                = [ ...reducerInfo.current[mouseEnterInfo.type].shareWith , mouseEnterInfo.type ]
-                            if ( !isOneOfTypes( acceptType ,  [mouseEnterInfo.ref] ) ) return
+                            if ( !isOneOfTypes( reducerInfo.current[mouseEnterInfo.type].shareWith ,  [mouseEnterInfo.type] ) ) return
                             dispatch( {
                                 type : `${mouseEnterInfo.type}` ,
                                 action : reducerInfo.current[moseDownInfo.type].moseEnterAction ,
-                                nodeRef : mouseEnterInfo.ref ,
+                                cellNode : mouseEnterInfo ,
                             } )
                         }
+
+                        //
                         const mouseUpHandle = () => {
                             if (!sheetRef.current) return
                             sheetRef.current.removeEventListener("mouseover", mouseEnterHandle);
@@ -136,23 +177,25 @@ function Sheets() {
         }
     }
 
-    const copyHandle = ( node1 : HTMLElement ,node2 : HTMLElement ) => {
+    const copyHandle = (  ) => {
 
-        if (!node1 ) return
-        if ( !node2) {
-            const info = getNodeInfo(node1);
-
-            if ( isOneOfTypes ( [dataTag.cell , dataTag.header] ,  [info.ref]  )  )
-                navigator.clipboard.writeText(info.ref.innerText);
+        if (!state.focusCell ) return
+        if ( !state.lastSelectedCell) {
+            if ( isOneOfTypes ( [dataTag.cell , dataTag.header] ,  [state.focusCell.type]  )  ) {
+                const copyText = rows[ state.focusCell.row ][ columns[state.focusCell.col].name ] ;
+                navigator.clipboard.writeText(copyText);
+            }
             return
         }
 
-        const nodeF = getNodeInfo(node1);
-        const nodeS = getNodeInfo(node2);
-
         // eslint-disable-next-line prefer-const
-        let [ minRow , maxRow ] = [  Math.min( nodeF.row , nodeS.row ) ,  Math.max( nodeF.row , nodeS.row )  ] ;
-        const [ minCol , maxCol ] = [  Math.min( nodeF.col , nodeS.col ) ,  Math.max( nodeF.col , nodeS.col )  ] ;
+        let [ minRow , maxRow ] = [
+            Math.min( state.focusCell.row , state.lastSelectedCell.row ) ,
+            Math.max( state.focusCell.row , state.lastSelectedCell.row )  ] ;
+        const [ minCol , maxCol ] = [
+            Math.min( state.focusCell.col , state.lastSelectedCell.col ),
+            Math.max( state.focusCell.col , state.lastSelectedCell.col )
+        ] ;
 
         let headerText = ``
         if (minRow === -1) {
@@ -177,21 +220,95 @@ function Sheets() {
             if (i < maxRow) output += "\n";
         }
         navigator.clipboard.writeText(headerText + output);
+        alert("Copied!");
 }
+
+
+    const focusCellMoveByArrow = (direction:string ) => {
+    if (!state.focusCell) return
+    const {row ,col} = state.focusCell;
+    switch (direction) {
+        case "ArrowRight": {
+            if ( col === tableSize.col ) return ;
+            dispatch(
+                { type : dataTag.cell , action : "updateFocusIndex" ,  cellNode:  { col:col+1 , row , type : dataTag.cell  }}
+            )
+            break;
+        }
+        case "ArrowLeft" : {
+            if ( col === 0 ) return
+            dispatch(
+                { type : dataTag.cell , action : "updateFocusIndex" ,  cellNode:  { col:col-1 , row  , type : dataTag.cell  }}
+            )
+            break;
+
+        }
+        case "ArrowUp" : {
+            if ( row === 0 ) return
+            // focusCellMoveByIndex({ col , row:row-1 })
+            dispatch(
+                { type : dataTag.cell , action : "updateFocusIndex" ,  cellNode:  { col , row:row-1 , type : dataTag.cell  }}
+            )
+            break;
+        }
+        case "ArrowDown" : {
+            if ( row === tableSize.row ) return
+            // focusCellMoveByIndex({ col , row:row+1 })
+            dispatch(
+                { type : dataTag.cell , action : "updateFocusIndex" ,  cellNode:  {  col , row:row+1 , type : dataTag.cell  }}
+            )
+            break;
+
+        }
+    }
+}
+
+    const keyDownHandle = (e : React.KeyboardEvent) => {
+        const key = e.key ;
+        if ( key === "Enter" ) {
+            e.preventDefault();
+            if ( state.isInput ) {
+                if (!state.focusCell) return
+                const {row ,col} = state.focusCell;
+                if ( col === tableSize.col &&  row < tableSize.row ) {
+                    dispatch(
+                        { type : dataTag.cell , action : "updateFocusIndex" ,  cellNode:  { col:0 , row : row+1 , type : dataTag.cell  }}
+                    )
+                } else {
+                    focusCellMoveByArrow(`ArrowRight`)
+                }
+            } else  {
+                dispatch({ type : dataTag.cell , action : "doubleClick" })
+            }
+        } else if ( [`ArrowRight` , `ArrowLeft` , `ArrowDown` , `ArrowUp` ].includes(key) ) {
+            if ( state.isInput ) return
+             focusCellMoveByArrow(key)
+        } else if ( key.length === 1 ) {
+
+            const isShortcut =
+                e.ctrlKey ||
+                e.metaKey ||
+                e.altKey;
+            if (isShortcut) return;
+
+            dispatch({ type : dataTag.cell , action : "doubleClick" })
+        }
+    }
+
 
     return (
         <>
-            <div>Meow</div>
+            <div>Copy | Range | Resize | Input</div>
             <hr/>
             <div
                 tabIndex={0}
                 ref={sheetRef}
                 className={styles.sheets}
                 data-type = {dataTag.sheet}
-
                 onDoubleClick={mouseDoubleClickHandle}
                 onMouseDown={mouseDownHandle}
-                onCopy={()=> { copyHandle(state.focusCell , state.lastSelectedCell) }}
+                onKeyDown={keyDownHandle}
+                onCopy={copyHandle}
             >
                 <div className={styles.right} >
                     <div
@@ -207,285 +324,10 @@ function Sheets() {
                 <HighlightCell node =  {state.focusCell} />
                 <HighlightRange startNode={state.focusCell}  endNode={state.lastSelectedCell}  />
                 <InputCell node =  { state.isInput ? state.focusCell : null } />
+
             </div>
         </>
     )
 }
 export default Sheets;
 
-
-
-
-// const copyHandle = () => {
-//     console.log("copy");
-//
-//     if (!focusCell ) return
-//
-//     if (  !selectingCell ) {
-//         navigator.clipboard.writeText(focusCell.innerText);
-//         return
-//     }
-//     //
-//     const [ rowF , colF ] = getRowAndCol(focusCell);
-//     const [ rowS , colS ] = getRowAndCol(selectingCell);
-//
-//     const [ minRow , maxRow ] = [  Math.min( rowF , rowS ) ,  Math.max( rowF , rowS )  ] ;
-//     const [ minCol , maxCol ] = [  Math.min( colF , colS ) ,  Math.max( colF , colS )  ] ;
-//
-//     let output = "" ;
-//     for ( let i = minRow ; i <= maxRow ; i ++ ) {
-//         const row = rows[i]
-//         for ( let j = minCol ; j <= maxCol ; j ++ ) {
-//             output += `${row[ columns[j].name ]}` ;
-//             if (j < maxCol) output += "\t";
-//         }
-//         if (i < maxRow) output += "\n";
-//     }
-//     navigator.clipboard.writeText(output);
-// }
-
-
-//
-//
-//
-// const tableSize = useMemo( ()=>{
-//     return {col : columns.length-1 , row : rows.length-1 }
-// } , [columns, rows]);
-//
-// //
-// const [focusCell, setFocusCell] = useState<HTMLElement | null>(null);
-// const [selectingCell, setSelectingCell] = useState<HTMLElement | null>(null);
-// const [isInput, setIsInput] = useState<boolean>(false);
-//
-// const isResizing = useRef<boolean>(false);
-// const isSelecting = useRef(false);
-// const resizeCell = useRef<HTMLElement | null>(null);
-//
-// //
-// const sheetRef = useRef<HTMLDivElement | null>(null);
-//
-// // onEvent
-// const mouseDownHandle = (e : React.MouseEvent) => {
-//     const [ node ,type ] = getNodeAndType(e)
-//     switch (type) {
-//         case  dataTag.cell : {
-//             isSelecting.current = true
-//             if (setSelectingCell) setSelectingCell(null)
-//             if ( focusCell === null ) {
-//                 setFocusCell(node);
-//             }
-//             else if ( node !== focusCell ) {
-//                 setIsInput(false) ;
-//                 setFocusCell(node);
-//             }
-//             break
-//         }
-//         case dataTag.header :{
-//             isSelecting.current = true
-//             if (setSelectingCell) setSelectingCell(null)
-//             setIsInput(false)
-//             setFocusCell(node);
-//             break
-//         }
-//         case dataTag.indexRow : {
-//
-//             const index = node.getAttribute(`data-row`)
-//             const selectedCell =
-//                 getCellByCoordinate( {row : Number(index) , col : tableSize.col , type : dataTag.cell} )
-//             if (!selectedCell) return
-//             setFocusCell(node);
-//             setSelectingCell(selectedCell as HTMLElement)
-//             break
-//         }
-//         case dataTag.indexCol : {
-//
-//             // setSelectingCell(null)
-//
-//
-//             const index = node.getAttribute(`data-col`)
-//             const selectedCell =
-//                 getCellByCoordinate( {col : Number(index) , row : tableSize.row , type : dataTag.cell} )
-//             if (!selectedCell) return
-//             setFocusCell(node);
-//             setSelectingCell(selectedCell as HTMLElement)
-//             break
-//         }
-//         case dataTag.resizeIndexRow :{
-//             isResizing.current = true
-//             resizeCell.current = node ;
-//
-//         }
-//     }
-// };
-//
-// const mouseEnterHandle = (e : React.MouseEvent) => {
-//
-//     const [ node ,type ] = getNodeAndType(e)
-//
-//     if ( isSelecting.current ) {
-//         switch (type) {
-//             case dataTag.cell : {
-//                 setSelectingCell(node)
-//                 break;
-//             }
-//             case dataTag.header : {
-//                 setSelectingCell(node)
-//                 break;
-//             }
-//         }
-//     }
-//
-//     if ( isResizing.current ) {
-//         switch (type) {
-//             case dataTag.indexRow : {
-//             //
-//             }
-//         }
-//     }
-//
-// };
-//
-// const mouseUpHandle = () => {
-//     if ( isSelecting.current ) isSelecting.current = false
-//
-//
-//     if (isResizing.current && resizeCell.current ) {
-//         isResizing.current = false
-//
-//
-//         console.log(resizeCell.current)
-//
-//         const node = resizeCell.current.parentElement
-//
-//         if ( !node ) return;
-//
-//         const [ index ,  ] = getRowAndCol(node)
-//         const dis = resizeRowFromTop - node.offsetTop ;
-//
-//
-//         if ( dis < 10 ) {
-//             updateRowSize({ rowIndex : index , height : 10  } )
-//         } else {
-//             const newHeight = Math.floor(dis)
-//             updateRowSize({ rowIndex : index , height : newHeight  } )
-//         }
-//
-//         setResizeRowFromTop(0)
-//         resizeCell.current = null
-//     }
-// };
-//
-// const mouseDoubleClick = (e : React.MouseEvent) => {
-//     const [ ,type ] = getNodeAndType(e)
-//     switch (type) {
-//         case dataTag.cell:
-//             setIsInput(true)
-//             break;
-//     }
-// }
-//
-// const focusCellMoveByIndex = ( {col  , row } : CoordinateType  ) => {
-//     const toCell = getCellByCoordinate( { col , row , type : dataTag.cell }  );
-//     setFocusCell(toCell)
-// }
-//
-// const focusCellOnEnter = () => {
-//     if (!focusCell ) return ;
-//     const [ row ,col ] = getRowAndCol(focusCell);
-//
-//     if ( col === tableSize.col ) {
-//         if ( row < tableSize.row ) {
-//             focusCellMoveByIndex({ col:0 , row :row+1 })
-//         }
-//     } else {
-//         focusCellMoveByArrow(`ArrowRight`)
-//     }
-// }
-//
-// const focusCellMoveByArrow = (direction:string) => {
-//     if (!focusCell) return
-//     const [ row ,col ] = getRowAndCol(focusCell);
-//
-//     switch (direction) {
-//         case "ArrowRight": {
-//             if ( col === tableSize.col ) return ;
-//             focusCellMoveByIndex({ col:col+1 , row })
-//             break;
-//         }
-//         case "ArrowLeft" : {
-//             if ( col === 0 ) return
-//             focusCellMoveByIndex({ col:col-1 , row })
-//             break;
-//         }
-//         case "ArrowUp" : {
-//             if ( row === 0 ) return
-//             focusCellMoveByIndex({ col , row:row-1 })
-//             break;
-//         }
-//         case "ArrowDown" : {
-//             if ( row === tableSize.row ) return
-//             focusCellMoveByIndex({ col , row:row+1 })
-//             break;
-//         }
-//     }
-// }
-//
-// const keyDownHandle = (e : React.KeyboardEvent) => {
-//     const key = e.key ;
-//
-//     if ( key === "Enter" ) {
-//         e.preventDefault();
-//         if ( isInput ) {
-//             focusCellOnEnter()
-//         } else if ( focusCell  ) {
-//             if ( getNodeType(focusCell) === dataTag.header ) return
-//             setIsInput(true)
-//         }
-//     } else if ( [`ArrowRight` , `ArrowLeft` , `ArrowDown` , `ArrowUp` ].includes(key) ) {
-//         if ( isInput ) return
-//          focusCellMoveByArrow(key)
-//     }
-// }
-//
-// const copyHandle = () => {
-//     console.log("copy");
-//
-//     if (!focusCell ) return
-//
-//     if (  !selectingCell ) {
-//         navigator.clipboard.writeText(focusCell.innerText);
-//         return
-//     }
-//     //
-//     const [ rowF , colF ] = getRowAndCol(focusCell);
-//     const [ rowS , colS ] = getRowAndCol(selectingCell);
-//
-//     const [ minRow , maxRow ] = [  Math.min( rowF , rowS ) ,  Math.max( rowF , rowS )  ] ;
-//     const [ minCol , maxCol ] = [  Math.min( colF , colS ) ,  Math.max( colF , colS )  ] ;
-//
-//     let output = "" ;
-//     for ( let i = minRow ; i <= maxRow ; i ++ ) {
-//         const row = rows[i]
-//         for ( let j = minCol ; j <= maxCol ; j ++ ) {
-//             output += `${row[ columns[j].name ]}` ;
-//             if (j < maxCol) output += "\t";
-//         }
-//         if (i < maxRow) output += "\n";
-//     }
-//     navigator.clipboard.writeText(output);
-// }
-//
-// // ====================================================
-//
-// const [ resizeRowFromTop , setResizeRowFromTop ] = useState( 0 ) ;
-// // const [ resizeRowFromLeft , setResizeRowFromLeft ] = useState( 0 ) ;
-//
-// const  mouseMoveHandle = (e: React.MouseEvent<HTMLDivElement>) => {
-//     if (!isResizing.current) return
-//
-//     const parent = e.currentTarget.getBoundingClientRect();
-//
-//     // const x = e.clientX - parent.left;
-//     const y = e.clientY - parent.top;
-//     setResizeRowFromTop(y)
-// }

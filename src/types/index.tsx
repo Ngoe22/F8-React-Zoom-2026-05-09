@@ -20,10 +20,16 @@ interface updateSizeProps {
     newSize : number,
 }
 
+interface CellNodeType {
+    row : number ,
+    col : number ,
+    type : string ,
+}
+
 
 
 interface CoordinateType  {
     row : number , col : number,
 }
 
-export type  {ColumnTypes ,RowTypes , updateCellProps , CoordinateType , updateSizeProps }
+export type  {ColumnTypes ,RowTypes , updateCellProps , CoordinateType , updateSizeProps , CellNodeType }

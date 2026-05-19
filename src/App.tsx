@@ -21,7 +21,6 @@ const   dataTag = {
   resizeIndexCol : "resizeIndexCol" ,
   resizeIndexRow : "resizeIndexRow" ,
   input : "input",
-
   sheet : "sheet",
 }
 

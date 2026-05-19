@@ -1,48 +1,47 @@
 import styles from "./styles.module.css";
-import {useContext, useRef, memo, useEffect} from "react";
+import {memo, useContext, useEffect, useRef} from "react";
 import {Context} from "../../../../contexts/Table";
-import {getNodeInfo} from "../../../../utils/functions"
-
+import {queryCellNode} from "../../../../utils/functions"
+import type {CellNodeType} from "../../../../types"
 
 interface Props {
-    node : HTMLElement | null
+    node : CellNodeType | null
 }
 
 function InputCell ( {node} :Props ) {
 
+    const { columns , rows } = useContext(Context)!;
     const { dataTag , updateCell } = useContext(Context)!;
-    const tempInput = useRef<string | null>(node?.innerText ??  null);
+    const tempInput = useRef<string | null>( null);
     const inputRef = useRef<HTMLDivElement | null>(null);
 
     useEffect ( ()=> {
         // auto focus
         if (!inputRef.current || !node) return;
         const el = inputRef.current;
-        el.innerText = node.innerText; // default text
+        el.innerText = rows[node.row][columns[node.col].name]; // default text
         el.focus();
-
-        requestAnimationFrame(() => {//  AI wrote
-            const range = document.createRange();
-            const sel = window.getSelection();
-            range.selectNodeContents(el);
-            range.collapse(false);
-            sel?.removeAllRanges();
-            sel?.addRange(range);
-        });
+        moveCaretToEnd(el); // AI wrote
         //
         return ()=>{
             // update data
             if ( node ) {
-                const { row , col } =  getNodeInfo(node)
-                if (col  && row  && tempInput.current  ) {
-                        updateCell( {rowIndex :row  , colIndex : col ,value :tempInput.current } )
+                if (  tempInput.current  ) {
+                        updateCell( {rowIndex :node.row  , colIndex : node.col ,value :tempInput.current } )
                         tempInput.current = null
                 }
             }
         }
-    } ,[node, updateCell])
+    } ,[columns, node, rows, updateCell])
 
     if ( !node ) return null
+    const focusNode = queryCellNode( {
+        row : node.row , col : node.col , type :node.type
+    } )
+    if ( !focusNode ) return null
+    const width = columns[node.col].width ;
+    const height =  rows[node.row].height ;
+
     return (
         <div
             ref={inputRef}
@@ -55,9 +54,9 @@ function InputCell ( {node} :Props ) {
             className={styles.inputCell}
             data-type = {dataTag.input}
             style={{
-                top : `${node.offsetTop}px` ,
-                left :  `${node.offsetLeft}px` ,
-                width : `${node.offsetWidth}px` , height : `${node.offsetHeight}px`
+                top : `${focusNode.offsetTop}px` ,
+                left :  `${focusNode.offsetLeft}px` ,
+                width : `${width}` , height : `${height}`
             }}
         >
         </div>
@@ -65,3 +64,17 @@ function InputCell ( {node} :Props ) {
 }
 
 export default memo(InputCell);
+
+
+const moveCaretToEnd = (
+    el: HTMLElement
+) => {
+    const range =
+        document.createRange();
+    const sel =
+        window.getSelection();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+};
