@@ -29,7 +29,6 @@ const   dataTag = {
 
 function App() {
 
-
   const  [ Columns , setColumns ]  = useState<ColumnTypes[]> ( [
     { name: "id" , editable : true , width : "150px" } ,
     { name: "name" , editable : true , width : "150px" },

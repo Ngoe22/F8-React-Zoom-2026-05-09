@@ -17,8 +17,8 @@ function HighlightCell ( {startNode , endNode} : HighlightCellProps  ) {
     const b = queryCellNode( {
         row : endNode.row , col : endNode.col , type :endNode.type
     } )
-    if ( !a || !b ) return null
 
+    if ( !a || !b ) return null
 
     const maxTop = Math.max( a.offsetTop , b.offsetTop  ) ;
     const minTop = Math.min( a.offsetTop , b.offsetTop ) ;

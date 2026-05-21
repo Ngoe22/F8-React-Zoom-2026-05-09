@@ -10,8 +10,8 @@ interface Props {
 
 function InputCell ( {node} :Props ) {
 
-    const { columns , rows } = useContext(Context)!;
-    const { dataTag , updateCell } = useContext(Context)!;
+
+    const { columns , rows, dataTag , updateCell } = useContext(Context)!;
     const tempInput = useRef<string | null>( null);
     const inputRef = useRef<HTMLDivElement | null>(null);
 
@@ -34,13 +34,13 @@ function InputCell ( {node} :Props ) {
         }
     } ,[columns, node, rows, updateCell])
 
-    if ( !node ) return null
+    if ( !node ||  node.type !== dataTag.cell) return null
     const focusNode = queryCellNode( {
         row : node.row , col : node.col , type :node.type
     } )
     if ( !focusNode ) return null
     const width = columns[node.col].width ;
-    const height =  rows[node.row].height ;
+    const height =  rows[node.row].height   ;
 
     return (
         <div
