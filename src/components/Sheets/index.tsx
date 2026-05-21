@@ -33,11 +33,6 @@ interface DispatchProps {
 
 function reducer(state : StateProps, param : DispatchProps ) {
 
-
-    //  resetInputAndHighLightRange Then set Start and End
-    //   set Start and End
-    // offRange ( end node === null )
-
     if (param.callback ) param.callback() // addEventListener
 
     switch (param.action) {
@@ -61,51 +56,6 @@ function reducer(state : StateProps, param : DispatchProps ) {
         default:
             return state;
     }
-
-
-
-
-    // switch (param.type) {
-    //     case "cell":
-    //     case "header": {
-    //         switch (param.action) {
-    //             case "focusAndActiveSelecting" : {
-    //                 if (param.callback ) param.callback() // addEventListener
-    //                 return {
-    //                     ...state ,
-    //                     lastSelectedCell : null,
-    //                     isInput : false,
-    //                     ...param.object
-    //                 }
-    //             }
-    //             case "updateSelectingNode" : {
-    //                 if ( !param.object ) return state
-    //                 return {  ...state , lastSelectedCell : param.object.lastSelectedCell! }
-    //             }
-    //             case "inputOn" : {
-    //                 return {  ...state , isInput : true    , lastSelectedCell : null, }
-    //             }
-    //             case "updateFocusAndSelected" : {
-    //                 if ( !param.object ) return state
-    //                 return {  ...state , ...param.object }
-    //             }
-    //             default:
-    //                 return state;
-    //         }
-    //     }
-    //     case "indexCol": {
-    //         switch (param.action) {
-    //             case "activeSelecting" : {
-    //                 if (param.callback )param.callback() // removeEventListener
-    //                 return state;
-    //             }
-    //             default:
-    //                 return state;
-    //         }
-    //     }
-    //     default:
-    //         return state;
-    // }
 }
 
 
@@ -237,14 +187,9 @@ function Sheets() {
 
     const mouseDoubleClickHandle = (e: React.MouseEvent)=> {
         const info = getNodeInfo(e.target as HTMLDivElement) ;
-        switch (info.type) {
-            case dataTag.cell : {
-                dispatch(
-                    { type : `${info.type}` , action : `inputOn`}
-                )
-                break
-            }
-        }
+        if ( info.type === dataTag.cell )  dispatch(
+            { type : `${info.type}` , action : `inputOn`}
+        )
     }
 
     const copyHandle = (  ) => {
@@ -319,7 +264,6 @@ function Sheets() {
             if ( row === tableSize.row ) return
             finalFocusCell = {  col , row:row+1   }
             break;
-
         }
     }
     dispatch(
